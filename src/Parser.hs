@@ -68,7 +68,7 @@ expr = buildExpressionParser prec term
 
 prec = []
 
-term =     do
+term =     do -- variable application, function applicaton, where expression
               x <- identifier
               as <- many atom
               fs <-     do
@@ -79,7 +79,7 @@ term =     do
                            spaces
                            return []
               return (makeWhere (DFreeApp x as) fs)
-       <|> do
+       <|> do -- constructor application
               c <- conName
               es <-     do
                            es <- bracks (sepBy1 expr comm)
@@ -88,13 +88,13 @@ term =     do
                            spaces
                            return []
               return (DConApp c es)
-       <|> do
+       <|> do -- lambda expression
               symbol "\\"
               xs <- many1 identifier
               symbol "."
               e <- expr
               return (foldr (\x t -> (DLambda x t)) e xs)
-       <|> do
+       <|> do -- let expression
               reserved "let"
               x <- identifier
               symbol "="
@@ -102,35 +102,35 @@ term =     do
               reserved "in"
               e1 <- expr
               return (DLet x e0 e1)
-       <|> do
+       <|> do -- case expression
               reserved "case"
               e <- expr
               reserved "of"
               bs <- sepBy1 branch (symbol "|")
               return (DCase e bs)
-       <|> do
+       <|> do -- other expressions
               a <- atom
               return a
 
-fundef =   do
+fundef =   do -- definitions in where expression
               f <- identifier
               symbol "="
               e <- expr
               return(f, e)
 
-atom =     do
+atom =     do -- variable
               x <- identifier
               return (DFreeApp x [])
-       <|> do
+       <|> do -- [list]
               symbol "["
               ts <- sepBy expr comm
               symbol "]"
               return (list2ConsList ts)
-       <|> do
+       <|> do -- (expression)
               e <- bracks expr
               return e
 
-branch =   do
+branch =   do -- branch in case expression
               c <- conName
               xs <-    do
                           xs <- bracks (sepBy1 identifier comm)
