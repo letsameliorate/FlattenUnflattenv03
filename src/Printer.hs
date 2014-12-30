@@ -7,8 +7,6 @@ instance Show DTerm where
     show dt = render (prettyTerm dt)
 
 
-
-
 prettyTerm (DFreeApp x dts) = if dts == []
                               then (text x)
                               else parens ((text x) <+> (hcat (punctuate space (map prettyTerm dts))))
