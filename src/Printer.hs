@@ -9,8 +9,9 @@ instance Show DTerm where
 
 blank = Text.PrettyPrint.HughesPJ.space
 
-stripLambda (DLambda x dt) = (x : (stripLambda dt))
-stripLambda dt = []
+stripLambda (DLambda x dt) = let (xs, dt') = stripLambda dt'
+                             in ((x:xs), dt')
+stripLambda dt = ([],dt)
 
 prettyTerm (DFreeApp x dts) = if dts == []
                               then (text x)
@@ -21,8 +22,8 @@ prettyTerm (DBoundApp i dts) = if dts == []
 prettyTerm (DConApp c dts) = if dts == []
                              then text c
                              else (text c) <> (parens (hcat (punctuate comma (map prettyTerm dts))))
-prettyTerm (DLambda x dt) = let xs = stripLambda dt
-                            in (text "\\") <> (hsep (map text xs)) <> (text ".") <> (prettyTerm dt)
+prettyTerm dt@(DLambda _ _) = let (xs, dt') = stripLambda dt
+                            in (text "\\") <> (hsep (map text xs)) <> (text ".") <> (prettyTerm dt')
 prettyTerm (DLet x dt0 dt1) = ((text "let") <+> (text x) <+> (text "=") <+> (prettyTerm dt0)) $$ ((text "in") <+> (prettyTerm dt1))
 prettyTerm (DCase csel (b:bs)) = hang ((text "case") <+> (prettyTerm csel) <+> (text "of")) 1 (blank <+> (prettyBranch b) $$ (vcat (map (\b -> (text "|" <+>) (prettyBranch b)) bs)))
                                  where
