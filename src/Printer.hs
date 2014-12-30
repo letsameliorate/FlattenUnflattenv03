@@ -7,9 +7,6 @@ instance Show DTerm where
     show dt = render (prettyTerm dt)
 
 
--- blank = Text.PrettyPrint.HughesPJ.space
-
-
 stripLambda (DLambda x dt) = let (xs, dt') = stripLambda dt
                              in ((x:xs), dt')
 stripLambda dt = ([],dt)
