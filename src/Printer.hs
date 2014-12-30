@@ -7,9 +7,6 @@ instance Show DTerm where
     show dt = render (prettyTerm dt)
 
 
-stripLambda (DLambda x dt) = let (xs, dt') = stripLambda dt
-                             in ((x:xs), dt')
-stripLambda dt = ([],dt)
 
 
 prettyTerm (DFreeApp x dts) = if dts == []
@@ -23,6 +20,10 @@ prettyTerm (DConApp c dts) = if dts == []
                              else (text c) <> (parens (hcat (punctuate comma (map prettyTerm dts))))
 prettyTerm dt@(DLambda _ _) = let (xs, dt') = stripLambda dt
                               in (text "\\") <> (hsep (map text xs)) <> (text ".") <> (prettyTerm dt')
+                              where
+                                  stripLambda (DLambda x dt) = let (xs, dt') = stripLambda dt
+                                                               in ((x:xs), dt')
+                                  stripLambda dt = ([],dt)
 prettyTerm (DLet x dt0 dt1) = parens (((text "let") <+> (text x) <+> (text "=") <+> (prettyTerm dt0)) $$ ((text "in") <+> (prettyTerm dt1)))
 prettyTerm (DCase csel (b:bs)) = hang ((text "case") <+> (prettyTerm csel) <+> (text "of")) 1 (space <+> (prettyBranch b) $$ (vcat (map (\b -> (text "|" <+>) (prettyBranch b)) bs)))
                                  where
